@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volume Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2f;
+            color: #ffcccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .calculator {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            width: auto;
+        }
+
+        .inputs {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .inputs h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .inputs label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        .inputs input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+
+        .inputs button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #008080;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .inputs button:hover {
+            background-color: #005757;
+        }
+
+        .visual-container {
+            background-color: #333;
+            border-radius: 20px;
+            padding: 45px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100px;
+        }
+
+        .visual {
+            position: relative;
+            width: 50px;
+            height: 300px;
+            background-color: #444;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .marker {
+            position: absolute;
+            width: 50px;
+            height: 5px;
+        }
+
+        .label {
+            position: absolute;
+            left: -70px;
+            font-size: 12px;
+            text-align: right;
+            width: 60px;
+        }
+
+        .value {
+            position: absolute;
+            right: -70px;
+            font-size: 12px;
+            text-align: left;
+            width: 60px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="inputs">
+            <h2>Volume Calculator</h2>
+            <label for="total-volume">Total Volume (mL)</label>
+            <input type="number" id="total-volume" placeholder="Enter total volume">
+
+            <label for="lever-arm">Lever Arm (cm)</label>
+            <input type="number" id="lever-arm" placeholder="Enter lever arm">
+
+            <label for="diameter">Diameter (cm)</label>
+            <input type="number" id="diameter" placeholder="Enter diameter">
+
+            <button onclick="calculateVolume()">Calculate</button>
+        </div>
+        <div class="visual-container">
+            <div class="visual" id="visual">
+                <div class="marker" id="marker-10" style="top: 100%; background-color: #ffcccc;">
+                    <div class="label">10%</div>
+                    <div class="value" id="value-10">Y mL</div>
+                </div>
+                <div class="marker" id="marker-x" style="top: 50%; background-color: green;">
+                    <div class="label" id="percent-x">X%</div>
+                    <div class="value" id="calculated-volume">X mL</div>
+                </div>
+                <div class="marker" id="marker-20" style="top: 0%; background-color: #ffcccc;">
+                    <div class="label">20%</div>
+                    <div class="value" id="value-20">Z mL</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateVolume() {
+            // Get input values
+            const totalVolume = parseFloat(document.getElementById('total-volume').value);
+            const leverArm = parseFloat(document.getElementById('lever-arm').value);
+            const diameter = parseFloat(document.getElementById('diameter').value);
+
+            // Check if all inputs are valid
+            if (isNaN(totalVolume) || isNaN(leverArm) || isNaN(diameter)) {
+                alert('Please fill in all fields with valid numbers.');
+                return;
+            }
+
+            // Calculate 10% and 20% of total volume
+            const volume10 = totalVolume * 0.1;
+            const volume20 = totalVolume * 0.2;
+
+            // Calculate cylinder volume based on lever arm (height) and diameter (radius)
+            const radius = diameter / 2;
+            const cylinderVolume = Math.PI * Math.pow(radius, 2) * leverArm;
+
+            // Calculate new volume as a percentage of total volume
+            const newVolumePercentage = (cylinderVolume / totalVolume) * 100;
+
+            // Determine dynamic range of the bar to center values
+            const minPercent = Math.min(10, Math.floor(newVolumePercentage) - 5);
+            const maxPercent = Math.max(20, Math.ceil(newVolumePercentage) + 5);
+            const rangePercent = maxPercent - minPercent;
+
+            const scale = 100 / rangePercent;
+
+            // Update visual markers
+            const marker10 = document.getElementById('marker-10');
+            const marker20 = document.getElementById('marker-20');
+            const markerX = document.getElementById('marker-x');
+
+            marker10.style.top = `${100 - (10 - minPercent) * scale}%`;
+            marker20.style.top = `${100 - (20 - minPercent) * scale}%`;
+            markerX.style.top = `${100 - (newVolumePercentage - minPercent) * scale}%`;
+
+            document.getElementById('value-10').textContent = `${volume10.toFixed(2)} mL`;
+            document.getElementById('value-20').textContent = `${volume20.toFixed(2)} mL`;
+            document.getElementById('calculated-volume').textContent = `${cylinderVolume.toFixed(2)} mL`;
+            document.getElementById('percent-x').textContent = `${newVolumePercentage.toFixed(2)}%`;
+
+            // Set marker X color based on range
+            if (newVolumePercentage >= 14 && newVolumePercentage <= 16) {
+                markerX.style.backgroundColor = 'green';
+            } else if (newVolumePercentage >= 10 && newVolumePercentage < 14 || newVolumePercentage > 16 && newVolumePercentage <= 20) {
+                markerX.style.backgroundColor = 'yellow';
+            } else if (newVolumePercentage >= 5 && newVolumePercentage < 10 || newVolumePercentage > 20 && newVolumePercentage <= 25) {
+                markerX.style.backgroundColor = 'orange';
+            } else {
+                markerX.style.backgroundColor = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
